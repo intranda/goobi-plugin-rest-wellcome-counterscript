@@ -102,8 +102,14 @@
 		<dependency>
 			<groupId>de.intranda.goobi.workflow</groupId>
 			<artifactId>goobi-core-jar</artifactId>
-			<version>3.0</version>
+			<version>3.0.10</version>
 		</dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.4</version>
+            <scope>provided</scope>
+        </dependency>
 		<!-- https://mvnrepository.com/artifact/junit/junit -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -111,7 +117,12 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
-
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+        </dependency>
 
 	</dependencies>
 <scm><url>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-rest-wellcome-counterscript.git</url><connection>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-rest-wellcome-counterscript.git</connection></scm></project>
