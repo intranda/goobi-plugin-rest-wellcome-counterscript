@@ -1,5 +1,7 @@
 package de.intranda.counterscript.persistence;
 
+import java.sql.SQLException;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -37,7 +39,12 @@ public class CounterscriptDabaseListener implements ServletContextListener {
             createTable.append("current tinyint DEFAULT '0', ");
             createTable.append("PRIMARY KEY (id) ");
             createTable.append(") ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 ");
-            DatabaseVersion.runSql(createTable.toString());
+            try {
+                DatabaseVersion.runSql(createTable.toString());
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
     }
