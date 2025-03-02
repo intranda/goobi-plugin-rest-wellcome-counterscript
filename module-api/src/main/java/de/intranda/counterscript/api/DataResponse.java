@@ -1,6 +1,6 @@
 package de.intranda.counterscript.api;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 import lombok.Data;
 
