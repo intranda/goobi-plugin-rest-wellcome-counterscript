@@ -1,4 +1,4 @@
-package de.intranda.counterscript.api;
+package org.goobi.api.rest;
 
 import jakarta.ws.rs.core.Feature;
 import jakarta.ws.rs.core.FeatureContext;

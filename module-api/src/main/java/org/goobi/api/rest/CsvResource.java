@@ -1,4 +1,4 @@
-package de.intranda.counterscript.api;
+package org.goobi.api.rest;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -7,19 +7,24 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriInfo;
 
 import de.intranda.counterscript.model.MetadataInformation;
 import de.intranda.counterscript.persistence.MetadataInformationManager;
 import lombok.extern.log4j.Log4j;
 
+//http://localhost:8080/Goobi/api/counterscript/csv
 @Log4j
-@Path("/counterscript/xml")
-public class XmlResource {
+@Path("/counterscript/csv")
+public class CsvResource {
+
+    @Context
+    UriInfo uriInfo;
 
     @GET
-    @Produces(MediaType.TEXT_XML)
-    public List<MetadataInformation> getXml() {
+    @Produces("text/csv")
+    public List<MetadataInformation> getCsv() {
 
         List<MetadataInformation> mdl = null;
         try {
@@ -31,10 +36,10 @@ public class XmlResource {
         return mdl;
     }
 
-    @GET
     @Path("/{startdate}/{enddate}")
-    @Produces(MediaType.TEXT_XML)
-    public List<MetadataInformation> getXml(@PathParam("startdate") String start, @PathParam("enddate") String end) {
+    @GET
+    @Produces("text/csv")
+    public List<MetadataInformation> getCsv(@PathParam("startdate") String start, @PathParam("enddate") String end) {
 
         List<MetadataInformation> mdl = null;
         try {
@@ -46,27 +51,10 @@ public class XmlResource {
         return mdl;
     }
 
-    @GET
-    @Path("/bnumber/{number}")
-    @Produces(MediaType.TEXT_XML)
-    public List<MetadataInformation> getXml( @PathParam("number") String number) {
-
-        List<MetadataInformation> mdl = null;
-        try {
-            mdl = MetadataInformationManager.calculateDataForIdentifier(number);
-        } catch (SQLException e) {
-            log.error(e);
-        }
-
-        return mdl;
-    }
-
-
-
     @Path("/withinactive")
     @GET
-    @Produces(MediaType.TEXT_XML)
-    public List<MetadataInformation> getXmlWithInactive() {
+    @Produces("text/csv")
+    public List<MetadataInformation> getCsvWithInactive() {
 
         List<MetadataInformation> mdl = null;
         try {
@@ -78,10 +66,10 @@ public class XmlResource {
         return mdl;
     }
 
-    @GET
     @Path("/withinactive/{startdate}/{enddate}")
-    @Produces(MediaType.TEXT_XML)
-    public List<MetadataInformation> getXmlWithInactive(@PathParam("startdate") String start, @PathParam("enddate") String end) {
+    @GET
+    @Produces("text/csv")
+    public List<MetadataInformation> getCsvWithInactive(@PathParam("startdate") String start, @PathParam("enddate") String end) {
 
         List<MetadataInformation> mdl = null;
         try {
@@ -92,5 +80,4 @@ public class XmlResource {
 
         return mdl;
     }
-
 }

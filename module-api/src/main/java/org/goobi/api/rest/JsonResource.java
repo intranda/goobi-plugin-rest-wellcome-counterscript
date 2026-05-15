@@ -1,4 +1,4 @@
-package de.intranda.counterscript.api;
+package org.goobi.api.rest;
 
 import java.sql.SQLException;
 import java.util.List;
