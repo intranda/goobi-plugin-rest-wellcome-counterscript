@@ -42,15 +42,14 @@ public class MetadataInformationManager {
         sql.append(StatusType.deleted);
         sql.append("' AND ");
         sql.append(COLUMN_NAME_FILENAME);
-        sql.append(" = '");
-        sql.append(filename + "'");
+        sql.append(" = ?");
 
         Connection connection = null;
         try {
             connection = MySQLHelper.getInstance().getConnection();
             QueryRunner run = new QueryRunner();
 
-            return run.query(connection, sql.toString(), resultSetToMetadataInformationHandler);
+            return run.query(connection, sql.toString(), resultSetToMetadataInformationHandler, filename);
 
         } finally {
             if (connection != null) {
@@ -89,10 +88,10 @@ public class MetadataInformationManager {
             sb.append(") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             Object[] parameter =
-                { mi.getFilename(), mi.getBnumber(), mi.getMaterial(), mi.getAccessStatus(), mi.getAccessLicence(), mi.getPlayerPermissions(),
-                        mi.getStatus().toString(), mi.getCreationDate() == null ? null : new Timestamp(mi.getCreationDate().getTime()),
-                                mi.getModificationDate() == null ? null : new Timestamp(mi.getModificationDate().getTime()),
-                                        mi.getDeletionDate() == null ? null : new Timestamp(mi.getDeletionDate().getTime()), mi.isActive() };
+                    { mi.getFilename(), mi.getBnumber(), mi.getMaterial(), mi.getAccessStatus(), mi.getAccessLicence(), mi.getPlayerPermissions(),
+                            mi.getStatus().toString(), mi.getCreationDate() == null ? null : new Timestamp(mi.getCreationDate().getTime()),
+                            mi.getModificationDate() == null ? null : new Timestamp(mi.getModificationDate().getTime()),
+                            mi.getDeletionDate() == null ? null : new Timestamp(mi.getDeletionDate().getTime()), mi.isActive() };
             Connection connection = null;
             try {
                 connection = MySQLHelper.getInstance().getConnection();
@@ -128,7 +127,7 @@ public class MetadataInformationManager {
 
     }
 
-    private static ResultSetHandler<MetadataInformation> resultSetToMetadataInformationHandler = new ResultSetHandler<MetadataInformation>() {
+    private static ResultSetHandler<MetadataInformation> resultSetToMetadataInformationHandler = new ResultSetHandler<>() {
         @Override
         public MetadataInformation handle(ResultSet rs) throws SQLException {
             try {
@@ -145,22 +144,22 @@ public class MetadataInformationManager {
     };
 
     private static ResultSetHandler<List<MetadataInformation>> resultSetToMetadataInformationListHandler =
-            new ResultSetHandler<List<MetadataInformation>>() {
-        @Override
-        public List<MetadataInformation> handle(ResultSet rs) throws SQLException {
-            try {
-                List<MetadataInformation> metadataList = new ArrayList<>();
-                while (rs.next()) {
-                    metadataList.add(convertMetadataInformation(rs));
+            new ResultSetHandler<>() {
+                @Override
+                public List<MetadataInformation> handle(ResultSet rs) throws SQLException {
+                    try {
+                        List<MetadataInformation> metadataList = new ArrayList<>();
+                        while (rs.next()) {
+                            metadataList.add(convertMetadataInformation(rs));
+                        }
+                        return metadataList;
+                    } finally {
+                        if (rs != null) {
+                            rs.close();
+                        }
+                    }
                 }
-                return metadataList;
-            } finally {
-                if (rs != null) {
-                    rs.close();
-                }
-            }
-        }
-    };
+            };
 
     public static MetadataInformation convertMetadataInformation(ResultSet rs) throws SQLException {
         Integer id = rs.getInt(COLUMN_NAME_ID);
@@ -200,7 +199,8 @@ public class MetadataInformationManager {
     }
 
     public static List<MetadataInformation> getAllElementsInFolder(String folder) throws SQLException {
-        String sql = "SELECT * FROM counterscript_files WHERE filename LIKE '" + folder + "%' AND current = true AND status != 'deleted';";
+        String sql = "SELECT * FROM counterscript_files WHERE filename LIKE '" + MySQLHelper.escapeString(folder)
+                + "%' AND current = true AND status != 'deleted';";
 
         Connection connection = null;
         try {
@@ -226,14 +226,13 @@ public class MetadataInformationManager {
         sql.append(StatusType.deleted);
         sql.append("' AND ");
         sql.append(COLUMN_NAME_FILENAME);
-        sql.append(" = '");
-        sql.append(filename + "'");
+        sql.append(" = ?");
         Connection connection = null;
         try {
             connection = MySQLHelper.getInstance().getConnection();
             QueryRunner run = new QueryRunner();
 
-            return run.query(connection, sql.toString(), resultSetToMetadataInformationHandler);
+            return run.query(connection, sql.toString(), resultSetToMetadataInformationHandler, filename);
 
         } finally {
             if (connection != null) {
@@ -310,20 +309,15 @@ public class MetadataInformationManager {
     }
 
     public static List<MetadataInformation> calculateDataForIdentifier(String number) throws SQLException {
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT * FROM counterscript_files WHERE ");
-        sql.append(COLUMN_NAME_BNUMBER);
-        sql.append(" = '");
-        sql.append(number);
-        sql.append("';");
+        String sql = "SELECT * FROM counterscript_files WHERE " + COLUMN_NAME_BNUMBER + " = ?";
 
-        log.debug(sql.toString());
+        log.debug(sql);
         Connection connection = null;
         try {
             connection = MySQLHelper.getInstance().getConnection();
             QueryRunner run = new QueryRunner();
 
-            return run.query(connection, sql.toString(), resultSetToMetadataInformationListHandler);
+            return run.query(connection, sql, resultSetToMetadataInformationListHandler, number);
 
         } finally {
             if (connection != null) {
@@ -334,6 +328,7 @@ public class MetadataInformationManager {
 
     public static List<MetadataInformation> calculateDataString(String start, String endtime, boolean includeInactiveData) throws SQLException {
         StringBuilder sql = new StringBuilder();
+        List<Object> params = new ArrayList<>();
         boolean whereAppended = false;
         sql.append("SELECT * FROM counterscript_files ");
         if (!includeInactiveData) {
@@ -344,42 +339,30 @@ public class MetadataInformationManager {
                 sql.append("AND ");
             }
             sql.append(" current = true ");
-
         }
         if (start != null) {
-
             if (!whereAppended) {
                 sql.append("WHERE ");
                 whereAppended = true;
             } else {
                 sql.append("AND ");
             }
-            sql.append(" (creation_date > '");
-            sql.append(start);
-            sql.append("' OR modification_date > '");
-            sql.append(start);
-            sql.append("' OR deletion_date > '");
-            sql.append(start);
-            sql.append("') ");
-
+            sql.append(" (creation_date > ? OR modification_date > ? OR deletion_date > ?) ");
+            params.add(start);
+            params.add(start);
+            params.add(start);
         }
-
         if (endtime != null) {
-
             if (!whereAppended) {
                 sql.append("WHERE ");
                 whereAppended = true;
             } else {
                 sql.append("AND ");
             }
-            sql.append(" (creation_date < '");
-            sql.append(endtime);
-            sql.append(" ' OR modification_date < '");
-            sql.append(endtime);
-            sql.append(" ' OR deletion_date < '");
-            sql.append(endtime);
-            sql.append("') ");
-
+            sql.append(" (creation_date < ? OR modification_date < ? OR deletion_date < ?) ");
+            params.add(endtime);
+            params.add(endtime);
+            params.add(endtime);
         }
 
         log.debug(sql.toString());
@@ -388,7 +371,7 @@ public class MetadataInformationManager {
             connection = MySQLHelper.getInstance().getConnection();
             QueryRunner run = new QueryRunner();
 
-            return run.query(connection, sql.toString(), resultSetToMetadataInformationListHandler);
+            return run.query(connection, sql.toString(), resultSetToMetadataInformationListHandler, params.toArray());
 
         } finally {
             if (connection != null) {
